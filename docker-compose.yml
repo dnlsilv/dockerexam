@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  mi-mongo-examen:
+    image: mongo
+    volumes:
+      - mongo-vol-examen:/data/db
+    networks:
+      mongo-node-net-examen:
+        ipv4_address: 172.40.0.10
+
+  mi-node-examen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mi-node-image-exam
+    depends_on:
+      - mi-mongo-examen
+    networks:
+      mongo-node-net-examen:
+        ipv4_address: 172.40.0.11
+      node-nginx-net-examen:
+        ipv4_address: 172.80.0.10
+
+  mi-nginx-examen:
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - mi-node-examen
+    networks:
+      node-nginx-net-examen:
+        ipv4_address: 172.80.0.11
+
+volumes:
+  mongo-vol-examen:
+
+networks:
+  mongo-node-net-examen:
+    ipam:
+      config:
+        - subnet: 172.40.0.0/16
+  node-nginx-net-examen:
+    ipam:
+      config:
+        - subnet: 172.80.0.0/16
